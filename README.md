@@ -1,99 +1,58 @@
-# vue-admin-template
+接口文档
+http://39.98.123.211:8170/swagger-ui.html
+http://39.98.123.211:8216/swagger-ui.html
 
-English | [简体中文](./README-zh.md)
+http://39.98.123.211:8510/swagger-ui.html#/
 
-> A minimal vue admin template with Element UI & axios & iconfont & permission control & lint
+这个项目由于时间和接口原因就不做了
 
-**Live demo:** http://panjiachen.github.io/vue-admin-template
+记录下业务相关
 
+# element-UI基础
 
-**The current version is `v4.0+` build on `vue-cli`. If you want to use the old version , you can switch branch to [tag/3.11.0](https://github.com/PanJiaChen/vue-admin-template/tree/tag/3.11.0), it does not rely on `vue-cli`**
+## 组件插槽
 
-<p align="center">
-  <b>SPONSORED BY</b>
-</p>
-<p align="center">
-   <a href="https://finclip.com?from=vue_element" title="FinClip" target="_blank">
-      <img height="200px" src="https://gitee.com/panjiachen/gitee-cdn/raw/master/vue%E8%B5%9E%E5%8A%A9.png" title="FinClip">
-   </a>
-</p>
+作用域插槽可以将子组件数据给父组件
 
-## Build Setup
+数据传输方向父组件到子组件
 
-```bash
-# clone the project
-git clone https://github.com/PanJiaChen/vue-admin-template.git
+传输的数据是HTML结构
 
-# enter the project directory
-cd vue-admin-template
+# 三级联动
 
-# install dependency
-npm install
+## 核心1
 
-# develop
-npm run dev
+组件挂载完成发送一级筛选条件
+
+一级筛选条件改变，清空二三级筛选条件
+
+```
+category2Id = category3Id = 0
 ```
 
-This will automatically open http://localhost:9528
+同时携带category1Id发送请求获取二级分类菜单
 
-## Build
-
-```bash
-# build for test environment
-npm run build:stage
-
-# build for production environment
-npm run build:prod
+```
+this.getcategory(category1Id)
 ```
 
-## Advanced
+同理：修改二级筛选条件，清空三级，并重新发送
 
-```bash
-# preview the release environment effect
-npm run preview
+注意：这里判断筛选条件改变的是@change其是组件自定义事件（具体使用暂时没在官网找到）
 
-# preview the release environment effect + static resource analysis
-npm run preview -- --report
+## 核心二
 
-# code format check
-npm run lint
+若第三级筛选条件确定，那么应该拿去数据进行展示设计组件传参。传递给父亲三级分类的id（每确定一个就给父亲发送一个）
 
-# code format check and auto fix
-npm run lint -- --fix
-```
+![image-20230308160745723](C:\Users\hang\AppData\Roaming\Typora\typora-user-images\image-20230308160745723.png)
 
-Refer to [Documentation](https://panjiachen.github.io/vue-element-admin-site/guide/essentials/deploy.html) for more information
+子-》父
 
-## Demo
+自定义事件
 
-![demo](https://github.com/PanJiaChen/PanJiaChen.github.io/blob/master/images/demo.gif)
+# 动态权限（路由）
 
-## Extra
 
-If you want router permission && generate menu by user roles , you can use this branch [permission-control](https://github.com/PanJiaChen/vue-admin-template/tree/permission-control)
 
-For `typescript` version, you can use [vue-typescript-admin-template](https://github.com/Armour/vue-typescript-admin-template) (Credits: [@Armour](https://github.com/Armour))
 
-## Related Project
 
-- [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin)
-
-- [electron-vue-admin](https://github.com/PanJiaChen/electron-vue-admin)
-
-- [vue-typescript-admin-template](https://github.com/Armour/vue-typescript-admin-template)
-
-- [awesome-project](https://github.com/PanJiaChen/vue-element-admin/issues/2312)
-
-## Browsers support
-
-Modern browsers and Internet Explorer 10+.
-
-| [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="IE / Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>IE / Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Safari |
-| --------- | --------- | --------- | --------- |
-| IE10, IE11, Edge| last 2 versions| last 2 versions| last 2 versions
-
-## License
-
-[MIT](https://github.com/PanJiaChen/vue-admin-template/blob/master/LICENSE) license.
-
-Copyright (c) 2017-present PanJiaChen

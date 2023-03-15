@@ -9,7 +9,7 @@ function resolve(dir) {
 const name = defaultSettings.title || 'vue Admin Template' // page title
 
 // If your port is set to 80,
-// use administrator privileges to execute the command line.
+// use administrator privileges to execute the command line.使用管理员权限来执行comman
 // For example, Mac: sudo npm run
 // You can change the port by the following methods:
 // port = 9528 npm run dev OR npm run dev --port = 9528
@@ -31,12 +31,36 @@ module.exports = {
   productionSourceMap: false,
   devServer: {
     port: port,
-    open: true,
+    open: false,
     overlay: {
       warnings: false,
       errors: true
     },
-    before: require('./mock/mock-server.js')
+    proxy: {
+      // 36.156.125.235
+      // '/dev-api/admin/acl': {
+      //   target: 'http://39.98.123.211:8170',
+      //   pathRewrite: { '^/dev-api': '' },
+      // },
+      // '/dev-api/admin/product': {
+      //   target: 'http://39.98.123.211:8510',
+      //   pathRewrite: { '^/dev-api': '' },
+      // },
+      // 报undefined的我说一下你们看看是不是和我的情况一样 你们在main文件引入接口文件的时候试试在Api后面加个.default试试
+      // '/dev-api/admin/acl': {
+      //   target: 'http://39.98.123.211:8170',
+      //   pathRewrite: { '^/dev-api': '' },
+      // },
+      // '/dev-api/admin/product': {
+      //   target: 'http://39.98.123.211:8510',
+      //   pathRewrite: { '^/dev-api': '' },
+      // },
+      '/dev-api': {
+        target: 'http://gmall-h5-api.atguigu.cn',
+        pathRewrite: { '^/dev-api': '' },
+      },
+    },
+    // before: require('./mock/mock-server.js')8216* 
   },
   configureWebpack: {
     // provide the app's title in webpack's name field, so that

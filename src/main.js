@@ -18,7 +18,9 @@ import '@/permission' // permission control
 // 这个是我们自己做的，将API挂载到vue原型身上
 import API from '@/api'
 Vue.prototype.$API = API;
+// 关于什么环境的
 
+console.log('当前环境'+process.env);
 // 生产环境？
 if (process.env.NODE_ENV === 'production') {
   const { mockXHR } = require('../mock')

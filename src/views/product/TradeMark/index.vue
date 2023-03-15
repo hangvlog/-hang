@@ -1,27 +1,36 @@
 <template>
   <div>
-    <el-table :data="tableData"
-              height="250"
+    <el-button type="primary"
+               @click="showDialog">添加</el-button>
+    <el-table :data="list"
+              height="350px"
               border
-              style="width: 100%">
-      <el-table-column prop="date"
+              style="width: 100%;margin-top: 15px;">
+
+      <el-table-column type="index"
                        label="序号"
                        width="180"
                        align="center
              ">
       </el-table-column>
-      <el-table-column prop="name"
+
+      <el-table-column prop="tmName"
                        label="品牌名称"
                        width="180"
                        align="center">
       </el-table-column>
+
       <el-table-column prop="address"
                        label="品牌LOGO"
                        align="center">
         <template slot-scope="{ row, $index }">
-          {{ row,$index }}
+          <!-- {{ row,$index }} -->
+          <img :src="row.logoUrl"
+               alt=""
+               style="width: 80px;height: 80px;">
         </template>
       </el-table-column>
+
       <el-table-column prop="address"
                        label="操作"
                        align="center">
@@ -40,41 +49,45 @@
 
     <div class="block">
       <el-pagination @size-change="handleSizeChange"
-                     @current-change="handleCurrentChange"
-                     :current-page="currentPage4"
-                     :page-sizes="[2, 200, 300, 400]"
-                     :page-size="100"
+                     @current-change="getPageList"
+                     :current-page="currentPage"
+                     :page-sizes="[3,5,10]"
+                     :page-size="limit"
                      :page-count="7"
-                     layout=" prev, pager, next, jumper,->,total, sizes"
-                     :total="400"
+                     layout=" prev, pager, next, jumper,->,sizes,total"
+                     :total="total"
                      style="text-align: center;margin-top: 20px;">
       </el-pagination>
     </div>
     <!-- 文件上传 -->
     <!-- Form -->
-    <el-button type="primary"
-               @click="dialogFormVisible = true">添加</el-button>
 
-    <el-dialog title="收货地址"
+    <el-dialog :title="this.form.id?'修改品牌':'添加品牌'"
                :visible.sync="dialogFormVisible">
-      <el-form :model="form">
-        <el-form-item label="活动名称"
-                      :label-width="formLabelWidth">
-          <el-input v-model="form.name"
+      <el-form :model="form"
+               :rules="rules"
+               ref="ruleForm">
+        <el-form-item label="品牌名称"
+                      :label-width="formLabelWidth"
+                      prop="tmName">
+          <el-input v-model="form.tmName"
                     autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="活动区域"
-                      :label-width="formLabelWidth">
+        <el-form-item label="品牌LOGO"
+                      :label-width="formLabelWidth"
+                      prop="logoUrl">
           <el-upload class="avatar-uploader"
-                     action="https://jsonplaceholder.typicode.com/posts/"
+                     action="/dev-api/admin/product/fileUpload"
                      :show-file-list="false"
                      :on-success="handleAvatarSuccess"
                      :before-upload="beforeAvatarUpload">
-            <img v-if="imageUrl"
-                 :src="imageUrl"
+            <img v-if="form.logoUrl"
+                 :src="form.logoUrl"
                  class="avatar">
             <i v-else
                class="el-icon-plus avatar-uploader-icon"></i>
+            <div slot="tip"
+                 class="el-upload_tip">只能上传png</div>
           </el-upload>
         </el-form-item>
       </el-form>
@@ -82,7 +95,7 @@
            class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
         <el-button type="primary"
-                   @click="dialogFormVisible = false">确 定</el-button>
+                   @click="addOrUpdateTradeMark">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -91,97 +104,113 @@
 
 <script>
 export default {
+
   methods: {
+    // 增加品牌
+    addOrUpdateTradeMark () {
+      this.$refs.ruleForm.validate(async (valid) => {
+        if (valid) {
+          // alert('submit!');
+          this.dialogFormVisible = false
+          let result = await this.$API.trademark.reqAddOrUpdateTradeMark(this.form)
+          if (result.code == 200) {
+            this.$message.success(this.form.id ? '修改品牌成功' : '添加品牌成功')
+            this.getPageList(this.form.id ? this.currentPage : 1)
+          }
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      })
+
+
+    },
+    resetForm () {
+      this.form = { tmName: '', logoUrl: '' }
+    },
+    handleAvatarSuccess (res, file) {
+      console.log(res);
+      // this.imageUrl = URL.createObjectURL(file.raw);
+      this.form.logoUrl = res.data
+
+    },
+    beforeAvatarUpload (file) {
+      const isJPG = file.type === 'image/jpeg';
+      const isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!');
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+      }
+      return isJPG && isLt2M;
+    },
+
+    showDialog () {
+      this.dialogFormVisible = true
+      this.resetForm()
+    },
     handleSizeChange (val) {
       console.log(`每页 ${val} 条`);
+      this.limit = val
+      this.getPageList()
     },
-    handleCurrentChange (val) {
-      console.log(`当前页: ${val}`);
+    // 修改品牌
+    updateTradeMark (row) {
+      this.dialogFormVisible = true
+      // console.log(row);
+      // let { id, logoUrl, tmName } = row
+      // this.form = { id, logoUrl, tmName }
+      this.form = { ...row }
+      // this.form = row
     },
-    async getTradeMarkList (page, limit) {
-      await this.$API.trademark.reqAddOrUpdateTradeMark(page, limit)
+    async getPageList (page = 1) {
+      this.currentPage = page
+      let result = await this.$API.trademark.reqTradeMarkList(this.currentPage, this.limit)
+      console.log(result);
+      if (result.code == 200) {
+        this.list = result.data.records
+        this.total = result.data.total
+      }
     }
   },
   data () {
+    let validateTmName = (rule, value, callback) => {
+      if (value.length < 2 || value.length > 10) {
+        callback(new Error('2-10位'))
+      } else {
+        callback()
+      }
+    }
     return {
-      tableData: [
-        {
-          date: "2016-05-03",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-        },
-        {
-          date: "2016-05-02",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-        },
-        {
-          date: "2016-05-04",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-        },
-        {
-          date: "2016-05-01",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-        },
-        {
-          date: "2016-05-08",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-        },
-        {
-          date: "2016-05-06",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-        },
-        {
-          date: "2016-05-07",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-        },
-      ],
-      dialogImageUrl: '',
-      dialogVisible: true,
-      disabled: false,
-      currentPage4: 15,
-      gridData: [{
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }],
-      dialogTableVisible: false,
       dialogFormVisible: false,
       form: {
-        name: '',
-        region: '',
-        date1: '',
-        date2: '',
-        delivery: false,
-        type: [],
-        resource: '',
-        desc: ''
+        tmName: '',
+        logoUrl: ''
       },
       formLabelWidth: '120px',
+      currentPage: 1,
+      limit: 3,
+      total: 10,
+      list: [],
+      rules: {
+        tmName: [
+          { required: true, message: '请输入活动名称', trigger: 'blur' },
+          // { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'change' }
+          { validator: validateTmName, trigger: 'blur' }
+        ],
+        logoUrl: [
+          { required: true, message: '请选择活动区域', trigger: 'change' }
+        ]
+      }
+
     };
   },
   mounted () {
-    // console.log(this.$API)
-    // let tmp = this.getTradeMarkList(1, 3)
-    // console.log(tmp);
-  }
+    this.getPageList()
+  },
+
 };
 </script>
 
@@ -210,3 +239,5 @@ export default {
   display: block;
 }
 </style>
+
+<!-- 一个后台管理系统，后续会进行Vue3+TS重构项目，并引入数据可视化大屏 -->

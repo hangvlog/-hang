@@ -19,8 +19,12 @@ import '@/permission' // permission control
 import API from '@/api'
 Vue.prototype.$API = API;
 // 关于什么环境的
+import CategorySelect from '@/components/CategorySelect'
+import HintButton from '@/components/HintButton'
+Vue.component(CategorySelect.name,CategorySelect)
+Vue.component(HintButton.name,HintButton)
 
-console.log('当前环境'+process.env);
+// console.log('当前环境'+process.env);
 // 生产环境？
 if (process.env.NODE_ENV === 'production') {
   const { mockXHR } = require('../mock')

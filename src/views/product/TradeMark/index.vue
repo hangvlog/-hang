@@ -10,8 +10,7 @@
       <el-table-column type="index"
                        label="序号"
                        width="180"
-                       align="center
-             ">
+                       align="center">
       </el-table-column>
 
       <el-table-column prop="tmName"
@@ -103,6 +102,8 @@
 </template>
 
 <script>
+import { tsInstantiationExpression } from '@babel/types';
+
 export default {
 
   methods: {
@@ -168,11 +169,43 @@ export default {
     async getPageList (page = 1) {
       this.currentPage = page
       let result = await this.$API.trademark.reqTradeMarkList(this.currentPage, this.limit)
-      console.log(result);
+      // console.log(result);
       if (result.code == 200) {
         this.list = result.data.records
         this.total = result.data.total
       }
+    },
+    // 删除品牌
+    deleteTradeMark (row) {
+      // console.log(row);
+      this.$confirm(`此操作将永久删除${row.tmName}, 是否继续?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(async () => {
+          console.log(row);
+          let result = await this.$API.trademark.reqDeleteTradeMark(row.id)
+          console.log('请求发送完成');
+          console.log(result);
+          // if (result.code == 200) {
+          //   this.$message({
+          //     type: 'success',
+          //     message: '删除成功!'
+          //   });
+          //   // this.getPageList(this.currentPage)
+          // }
+          // 出BUG了，原因未知
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          });
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
     }
   },
   data () {

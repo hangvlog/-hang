@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="card-header">{{title }}
+    <div class="card-header">{{ title }}
       <svg t="1678326998160"
            class="icon"
            viewBox="0 0 1024 1024"
@@ -14,7 +14,7 @@
               fill="#707070"></path>
       </svg>
     </div>
-    <div class="card-content">￥{{count}}</div>
+    <div class="card-content">{{count}}</div>
     <div class="card-charts">
       <slot name="charts"></slot>
     </div>
@@ -25,8 +25,6 @@
 </template>
 
 <script>
-// import { count } from 'console';
-// import { title } from 'process';
 
 export default {
   name: 'Detail',
@@ -34,7 +32,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -47,11 +45,9 @@ export default {
 }
 .card-charts {
   font-size: 12px;
-  height: 60px;
+  height: 50px;
 }
 .card-footer {
-  /*border-top: 1px solid #000;
-  background-color: aqua;*/
   color: red;
 }
 </style>

@@ -36,41 +36,83 @@
         </el-dialog>
       </el-form-item>
       <el-form-item label="销售属性">
-        <el-select placeholder="还有3未选择"
+        <el-select :placeholder="`还有${unSelectedAttrValue.length}未选择`"
                    clearable
-                   filterable>
-          <el-option>
+                   filterable
+                   v-model="attrIdAndName">
+          <!-- el-option进行传入数据 到el-select 的v-model里面-->
+          <!-- :label表示展示的内容 -->
+          <!-- :value表示收集的数据 -->
+          <el-option :label="unselect.name"
+                     :value="`${unselect.id}:${unselect.name}`"
+                     v-for="(unselect,index) in unSelectedAttrValue"
+                     :key="unselect.id">
           </el-option>
         </el-select>
         <el-button type="primary"
                    size="default"
-                   @click=""
-                   icon="el-icon-plus">添加销售属性</el-button>
+                   icon="el-icon-plus"
+                   :disabled="!attrIdAndName"
+                   @click="addSaleAttr">添加销售属性</el-button>
       </el-form-item>
       <el-form-item>
         <el-table stripe
                   border
-                  style="width: 100%">
+                  style="width: 100%"
+                  :data="spu.spuSaleAttrList">
           <el-table-column type="index"
                            label="序号"
-                           width="180">
+                           min-width="10%"
+                           align="center">
           </el-table-column>
-          <el-table-column prop="name"
+          <el-table-column :prop="`saleAttrName||''`"
                            label="属性名"
-                           width="180">
+                           min-width="20%">
           </el-table-column>
-          <el-table-column prop="address"
-                           label="属性名称列表">
+          <el-table-column :prop="`spuSaleAttrValueList||''`"
+                           label="属性名称列表"
+                           min-width="60%">
+            <template slot-scope="{row,$index}">
+              <el-tag :key="tag.id"
+                      v-for="(tag,index) in row.spuSaleAttrValueList"
+                      closable
+                      :disable-transitions="false"
+                      @close="row.spuSaleAttrValueList.splice(index,1)">
+                {{tag.saleAttrValueName}}
+              </el-tag>
+              <!-- @keyup.enter.native="
+                      handleInputConfirm"
+                      @blur="handleInputConfirm"
+                      -->
+              <el-input class="input-new-tag"
+                        v-if="row.inputVisible"
+                        v-model="row.inputValue"
+                        ref="saveTagInput"
+                        size="small"
+                        @blur="handleInputConfirm(row)">
+              </el-input>
+              <el-button v-else
+                         class="button-new-tag"
+                         size="small"
+                         @click="showInput(row)">添加</el-button>
+            </template>
           </el-table-column>
-          <el-table-column prop="address"
-                           label="操作">
+          <el-table-column label="操作"
+                           min-width="10%">
+            <template slot-scope="{row,$index}">
+              <!-- @click="" -->
+              <el-button type="danger"
+                         size="mini"
+                         icon="el-icon-delete"
+                         @click="spu.spuSaleAttrList.splice($index,1)"></el-button>
+            </template>
           </el-table-column>
         </el-table>
       </el-form-item>
       <el-form-item>
         <el-button type="primary"
                    size="default"
-                   @click="">保存</el-button>
+                   @click="addOrUpdateSpu">保存</el-button>
         <el-button size="default"
                    @click="$emit('changeScene',0)">取消</el-button>
       </el-form-item>
@@ -104,7 +146,13 @@ export default {
       },
       tradeMarkList: [],
       spuImageList: [],
-      baseSaleAttrList: []
+      baseSaleAttrList: [],
+      //tags
+      // dynamicTags: ['标签一', '标签二', '标签三'],
+      // inputVisible: false,
+      inputValue: '',
+      // 未选择的Id
+      attrIdAndName: ''
     }
   },
   methods: {
@@ -154,9 +202,99 @@ export default {
         this.baseSaleAttrList = result.data
       }
     },
+    addSaleAttr () {
+      const [baseSaleAttrId, saleAttrName] = this.attrIdAndName.split(':')
+      let newSaleAttr = { baseSaleAttrId, saleAttrName, spuSaleAttrValueList: [] }
+      this.spu.spuSaleAttrList.push(newSaleAttr)
+      this.attrIdAndName = ''
+    },
+    //tags
+    handleClose (tag) {
+      // this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1);
+      console.log(tag);
+    },
+
+    // showInput () {
+    //   this.inputVisible = true;
+    //   this.$nextTick(_ => {
+    //     this.$refs.saveTagInput.$refs.input.focus();
+    //   });
+    // },
+    showInput (row) {
+      this.$set(row, 'inputValue', '')
+      this.$set(row, 'inputVisible', true)
+      // row.inputVisible = true;
+      this.$nextTick(_ => {
+        this.$refs.saveTagInput.$refs.input.focus();
+      });
+    },
+
+    handleInputConfirm (row) {
+      console.log(row);
+      let { baseSaleAttrId, inputValue } = row
+      // 输入不能为空
+      if (inputValue.trim() == '') {
+        this.$message.warning('输入不能为空')
+        row.inputVisible = false;
+        return
+      }
+      // 属性值不能重复
+      let result = row.spuSaleAttrValueList.some(item => {
+        return item.saleAttrValueName == inputValue //只要有一个满足就返回真，否则则假
+      })
+      if (result) {
+        this.$message.warning('请勿输入重复的属性')
+        row.inputVisible = false;
+        return
+      }
+
+      row.spuSaleAttrValueList.push({ baseSaleAttrId, saleAttrValueName: inputValue })
+      row.inputVisible = false;
+
+      // let inputValue = this.inputValue;
+      // if (inputValue) {
+      //   this.dynamicTags.push(inputValue);
+      // }
+      // this.inputVisible = false;
+      // this.inputValue = '';
+    },
+    async addOrUpdateSpu () {
+      this.spu.spuImageList = this.spuImageList.map(item => {
+        return {
+          imageName: item.name,
+          imageUrl: (item.response && item.response.data) || item.url
+        }
+      })
+    }
+  },
+  computed: {
+    //尚未选择的销售属性
+    unSelectedAttrValue () {
+      let res = this.baseSaleAttrList.filter(item => {
+        return this.spu.spuSaleAttrList.every(item1 => {
+          return item.name != item1.saleAttrName
+        })
+      })
+      return res
+    }
   }
 }
 </script>
 
-<style lang="less" scoped>
+<style>
+.el-tag + .el-tag {
+  margin-left: 10px;
+}
+.button-new-tag {
+  margin-left: 10px;
+  height: 32px;
+  line-height: 30px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.input-new-tag {
+  width: 90px;
+  margin-left: 10px;
+  vertical-align: bottom;
+}
 </style>
